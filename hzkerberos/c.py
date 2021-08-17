@@ -1,15 +1,10 @@
 from ctypes import Structure, POINTER
-from ctypes import c_char, c_char_p, c_int32, c_uint, c_uint8, c_void_p, c_size_t
-from ctypes import cdll, byref, memmove
+from ctypes import c_char_p, c_int32, c_uint, c_uint8, c_void_p, c_int
+from ctypes import cdll, byref, cast, pointer
 
+import gssapi
 
-class KerberosError(RuntimeError):
-
-    def __init__(self, code):
-        self.code = code
-        msg = ERROR_MAP.get(code, "UNKNOWN: %d" % code)
-        super().__init__(msg)
-
+from .errors import KerberosError
 
 krb5_int32 = c_int32
 krb5_flags = c_int32
@@ -20,6 +15,7 @@ krb5_boolean = c_uint
 krb5_error_code = krb5_int32
 krb5_enctype = krb5_int32
 krb5_timestamp = krb5_int32
+krb5_preauthtype = krb5_int32
 krb5_magic = krb5_error_code
 krb5_octet = c_uint8
 
@@ -97,25 +93,66 @@ class Krb5Creds(Structure):
     ]
 
 
+class Krb5GetInitCredsOpt(Structure):
+    _fields_ = [
+        ("flags", krb5_flags),
+        ("tkt_life", krb5_deltat),
+        ("renew_life", krb5_deltat),
+        ("forwardable", c_int),
+        ("proxiable", c_int),
+        ("etype_list", POINTER(krb5_enctype)),
+        ("etype_list_length", c_int),
+        ("address_list", POINTER(POINTER(Krb5Address))),
+        ("preauth_list", POINTER(krb5_preauthtype)),
+        ("preauth_list_length", c_int),
+        ("salt", POINTER(Krb5Data)),
+    ]
+
+
 class Krb5Context(Structure):
     pass
 
 
+class Krb5KeyTab(Structure):
+    pass
+
+
+class Krb5InitCredsContext(Structure):
+    pass
+
+
+class Krb5CCache(Structure):
+    pass
+
+
 krb5_context = POINTER(Krb5Context)
+krb5_keytab = POINTER(Krb5KeyTab)
+krb5_init_creds_context = POINTER(Krb5InitCredsContext)
+krb5_ccache = POINTER(Krb5CCache)
 
 
 class Krb5(object):
     lib = None
-    parse_name = None
-    get_init_creds_password = None
-    free_principal = None
-    free_cred_contents = None
-    init_context = None
+    cc_close = None
+    cc_default_name = None
+    cc_resolve = None
     free_context = None
-    memcpy = None
+    free_cred_contents = None
+    free_error_message = None
+    free_principal = None
+    get_error_message = None
+    get_init_creds_keytab = None
+    get_init_creds_opt_alloc = None
+    get_init_creds_opt_free = None
+    get_init_creds_opt_set_out_ccache = None
+    get_init_creds_password = None
+    init_context = None
+    kt_close = None
+    kt_resolve = None
+    parse_name = None
 
     def __init__(self, libname="libkrb5.so"):
-        if Krb5.lib is None:
+        if Krb5.lib is None and libname:
             lib = cdll.LoadLibrary(libname)
             Krb5.lib = lib
 
@@ -151,44 +188,125 @@ class Krb5(object):
             f.restype = None
             Krb5.free_context = f
 
-            clib = cdll.LoadLibrary("libc.so.6")
-
-            f = clib.memcpy
-            f.argtypes = (c_void_p, c_void_p, c_size_t)
+            f = lib.krb5_get_error_message
+            f.argtypes = (krb5_context, krb5_error_code)
             f.restype = c_void_p
-            Krb5.memcpy = f
+            Krb5.get_error_message = f
 
-    def get_token(self, princname, password):
-        # type: (Krb5, str, str) -> bytes
+            f = lib.krb5_free_error_message
+            f.argtypes = (krb5_context, c_char_p)
+            f.restype = None
+            Krb5.free_error_message = f
+
+            f = lib.krb5_kt_resolve
+            f.argtypes = (krb5_context, c_char_p, POINTER(krb5_keytab))
+            f.restype = krb5_error_code
+            Krb5.kt_resolve = f
+
+            f = lib.krb5_kt_close
+            f.argtypes = (krb5_context, krb5_keytab)
+            f.restype = krb5_error_code
+            Krb5.kt_close = f
+
+            f = lib.krb5_get_init_creds_keytab
+            f.argtypes = (
+                krb5_context, POINTER(Krb5Creds), krb5_principal, krb5_keytab, krb5_deltat, c_char_p, c_void_p)
+            f.restype = krb5_error_code
+            Krb5.get_init_creds_keytab = f
+
+            f = lib.krb5_get_init_creds_opt_alloc
+            f.argtypes = (krb5_context, POINTER(POINTER(Krb5GetInitCredsOpt)))
+            f.restype = krb5_error_code
+            Krb5.get_init_creds_opt_alloc = f
+
+            f = lib.krb5_get_init_creds_opt_set_out_ccache
+            f.argtypes = (krb5_context, POINTER(Krb5GetInitCredsOpt), krb5_ccache)
+            f.restype = krb5_error_code
+            Krb5.get_init_creds_opt_set_out_ccache = f
+
+            f = lib.krb5_get_init_creds_opt_free
+            f.argtypes = (krb5_context, POINTER(Krb5GetInitCredsOpt))
+            f.restype = krb5_error_code
+            Krb5.get_init_creds_opt_free = f
+
+            f = lib.krb5_cc_default_name
+            f.argtypes = (krb5_context,)
+            f.restype = c_char_p
+            Krb5.cc_default_name = f
+
+            f = lib.krb5_cc_resolve
+            f.argtypes = (krb5_context, c_char_p, POINTER(krb5_ccache))
+            f.restype = krb5_error_code
+            Krb5.cc_resolve = f
+
+            f = lib.krb5_cc_close
+            f.argtypes = (krb5_context, krb5_ccache)
+            f.restype = krb5_error_code
+            Krb5.cc_close = f
+
+    def get_token(self, principal="", password="", keytab=""):
+        # type: (Krb5, str, str, str) -> bytes
+
+        if self.lib and (password or keytab):
+            self._cache_credentials(principal, password, keytab)
+        server_name = gssapi.Name(principal)
+        client_ctx = gssapi.SecurityContext(name=server_name, usage='initiate')
+        token = client_ctx.step()
+        return token
+
+    def _cache_credentials(self, principal, password, keytab):
+        # authenticates the principal by using a password or the keytab and caches the credentials.
 
         def cleanup():
+            if keytab_handle:
+                self.kt_close(context, keytab_handle)
             self.free_principal(context, client_princ)
             self.free_cred_contents(context, byref(creds))
+            self.get_init_creds_opt_free(context, optp)
+            self.cc_close(context, cache)
             self.free_context(context)
 
+        def ok(ret):
+            if ret:
+                cleanup()
+                raise KerberosError(msg=self._make_error_msg(context, ret), code=ret)
+
+        keytab_handle = None
         context = krb5_context()
         self.init_context(byref(context))
         creds = Krb5Creds()
         client_princ = krb5_principal()
-        ret = self.parse_name(context, princname.encode("utf-8"), byref(client_princ))
-        if ret:
-            cleanup()
-            raise KerberosError(code=ret)
-        ret = self.get_init_creds_password(context, byref(creds), client_princ, password.encode("utf-8"), 0, None, 0,
-                                           None, 0)
-        if ret:
-            cleanup()
-            raise KerberosError(code=ret)
-        ticket_len = creds.ticket.length
-        if ticket_len < 0:
-            raise RuntimeError("illegal ticket length")
-        ticket = (c_char * ticket_len)()
-        memmove(ticket, creds.ticket.data, ticket_len)
+        ok(self.parse_name(context, principal.encode("utf-8"), byref(client_princ)))
+
+        # initialize credentials options
+        opt = Krb5GetInitCredsOpt()
+        optp = pointer(opt)
+        ok(self.get_init_creds_opt_alloc(context, byref(optp)))
+
+        # set the credentials cache
+        cache_name = self.cc_default_name(context)
+        cache = krb5_ccache()
+        ok(self.cc_resolve(context, cache_name, byref(cache)))
+        ok(self.get_init_creds_opt_set_out_ccache(context, optp, cache))
+
+        # authenticate
+        if keytab:
+            # keytab is specified, try load it
+            keytab_handle = krb5_keytab()
+            ret = self.kt_resolve(context, keytab.encode("utf-8"), byref(keytab_handle))
+            if not ret:
+                ret = self.get_init_creds_keytab(context, byref(creds), client_princ, keytab_handle, 0, None, optp)
+        else:
+            # no keytab, try to use the password
+            ret = self.get_init_creds_password(context, byref(creds), client_princ, password.encode("utf-8"), None,
+                                               None, 0, None, None)
+        ok(ret)
         cleanup()
-        return memoryview(ticket).tobytes()
 
-
-ERROR_MAP = {
-    -1765328228: "KRB5_KDC_UNREACH",
-    -1765328230: "KRB5_REALM_UNKNOWN",
-}
+    @classmethod
+    def _make_error_msg(cls, context, ret):
+        err = cls.get_error_message(context, ret)
+        err_c = cast(err, c_char_p)
+        msg = err_c.value
+        cls.free_error_message(context, err_c)
+        return msg.decode("utf-8")
