@@ -9,7 +9,7 @@
 
 import logging
 
-from thrift.Thrift import TProcessor
+from thrift.Thrift import TProcessor, TMessageType, TApplicationException
 
 from .ttypes import *
 
