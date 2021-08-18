@@ -153,7 +153,10 @@ class Krb5(object):
 
     def __init__(self, libname="libkrb5.so"):
         if Krb5.lib is None and libname:
-            lib = cdll.LoadLibrary(libname)
+            try:
+                lib = cdll.LoadLibrary(libname)
+            except OSError:
+                return
             Krb5.lib = lib
 
             f = lib.krb5_parse_name
