@@ -16,11 +16,13 @@ run_test () {
 }
 
 principal="hz/${HOSTNAME}@EXAMPLE.COM"
+principalpw="hz1/${HOSTNAME}@EXAMPLE.COM"
 
 echo "$(hostname -I) example.com" >> /etc/hosts
 echo "$(hostname -I) ${HOSTNAME}.example.com" >> /etc/hosts
 
 kadmin.local -q "addprinc -randkey $principal" && \
+kadmin.local -q "addprinc -pw Password01 $principalpw" && \
 kadmin.local -q "ktadd -k /etc/krb5.keytab $principal" && \
 chmod 777 /etc/krb5.keytab
 

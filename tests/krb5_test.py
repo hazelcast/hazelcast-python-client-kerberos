@@ -6,11 +6,11 @@ from .util import make_principal, default_keytab
 
 class Krb5Test(unittest.TestCase):
 
-    # def test_get_token_with_password(self):
-    #     p = hzkerberos.TokenProvider(spn=make_principal(), password="Password01")
-    #     tok = p.token()
-    #     self.assertIsNotNone(tok)
-    #     self.assertIsInstance(tok, bytes)
+    def test_get_token_with_password(self):
+        p = hzkerberos.TokenProvider(spn=make_principal(prefix="hz1"), password="Password01")
+        tok = p.token()
+        self.assertIsNotNone(tok)
+        self.assertIsInstance(tok, bytes)
 
     def test_get_token_with_keytab(self):
         p = hzkerberos.TokenProvider(spn=make_principal(), keytab=default_keytab())
@@ -31,7 +31,7 @@ class Krb5Test(unittest.TestCase):
 
     def test_get_token_principal_unknown_failure(self):
         # unknown username
-        principal = make_principal(prefix="hz1")
+        principal = make_principal(prefix="hz2")
         p = hzkerberos.TokenProvider(spn=principal, password="Password01")
         self.assertRaisesRegex(
             hzkerberos.KerberosError, "KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN", lambda: p.token()
