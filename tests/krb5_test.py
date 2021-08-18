@@ -5,7 +5,6 @@ from .util import make_principal, default_keytab
 
 
 class Krb5Test(unittest.TestCase):
-
     def test_get_token_with_password(self):
         p = hzkerberos.TokenProvider(spn=make_principal(prefix="hz1"), password="Password01")
         tok = p.token()
