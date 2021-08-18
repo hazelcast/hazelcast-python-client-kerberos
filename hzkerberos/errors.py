@@ -1,8 +1,7 @@
-__all__ = "KerberosError",
+__all__ = ("KerberosError",)
 
 
 class KerberosError(RuntimeError):
-
     def __init__(self, msg, code):
         self.code = code
         code_msg = ERROR_MAP.get(code, "UNKNOWN: %d" % code)

@@ -109,4 +109,6 @@ def xml_config(principal, keytab):
                 </realms>
             </security>            
         </hazelcast>        
-    """.format(principal=principal, keytab=keytab)
+    """.format(
+        principal=principal, keytab=keytab
+    )

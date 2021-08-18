@@ -89,7 +89,7 @@ class Krb5Creds(Structure):
         ("addresses", POINTER(POINTER(Krb5Address))),
         ("ticket", Krb5Data),
         ("second_ticket", Krb5Data),
-        ("authdata", POINTER(POINTER(Krb5AuthData)))
+        ("authdata", POINTER(POINTER(Krb5AuthData))),
     ]
 
 
@@ -163,8 +163,16 @@ class Krb5(object):
 
             f = lib.krb5_get_init_creds_password
             f.argtypes = (
-            krb5_context, POINTER(Krb5Creds), krb5_principal, c_char_p, c_void_p, c_void_p, krb5_deltat, c_char_p,
-            c_void_p)
+                krb5_context,
+                POINTER(Krb5Creds),
+                krb5_principal,
+                c_char_p,
+                c_void_p,
+                c_void_p,
+                krb5_deltat,
+                c_char_p,
+                c_void_p,
+            )
             f.restype = krb5_error_code
             Krb5.get_init_creds_password = f
 
@@ -210,7 +218,14 @@ class Krb5(object):
 
             f = lib.krb5_get_init_creds_keytab
             f.argtypes = (
-                krb5_context, POINTER(Krb5Creds), krb5_principal, krb5_keytab, krb5_deltat, c_char_p, c_void_p)
+                krb5_context,
+                POINTER(Krb5Creds),
+                krb5_principal,
+                krb5_keytab,
+                krb5_deltat,
+                c_char_p,
+                c_void_p,
+            )
             f.restype = krb5_error_code
             Krb5.get_init_creds_keytab = f
 
@@ -250,7 +265,7 @@ class Krb5(object):
         if self.lib and (password or keytab):
             self._cache_credentials(principal, password, keytab)
         server_name = gssapi.Name(principal)
-        client_ctx = gssapi.SecurityContext(name=server_name, usage='initiate')
+        client_ctx = gssapi.SecurityContext(name=server_name, usage="initiate")
         token = client_ctx.step()
         return token
 
@@ -295,11 +310,22 @@ class Krb5(object):
             keytab_handle = krb5_keytab()
             ret = self.kt_resolve(context, keytab.encode("utf-8"), byref(keytab_handle))
             if not ret:
-                ret = self.get_init_creds_keytab(context, byref(creds), client_princ, keytab_handle, 0, None, optp)
+                ret = self.get_init_creds_keytab(
+                    context, byref(creds), client_princ, keytab_handle, 0, None, optp
+                )
         else:
             # no keytab, try to use the password
-            ret = self.get_init_creds_password(context, byref(creds), client_princ, password.encode("utf-8"), None,
-                                               None, 0, None, None)
+            ret = self.get_init_creds_password(
+                context,
+                byref(creds),
+                client_princ,
+                password.encode("utf-8"),
+                None,
+                None,
+                0,
+                None,
+                None,
+            )
         ok(ret)
         cleanup()
 
