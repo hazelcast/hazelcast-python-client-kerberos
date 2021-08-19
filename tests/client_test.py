@@ -28,7 +28,7 @@ class Krb5TestCase(unittest.TestCase):
         principal = make_principal()
         keytab = default_keytab()
         cluster = self.create_cluster(xml_config(principal, keytab))
-        token_provider = hzkerberos.TokenProvider(spn=principal, keytab=keytab)
+        token_provider = hzkerberos.TokenProvider(principal=principal, keytab=keytab)
         client = hazelcast.HazelcastClient(cluster_name=cluster.id, token_provider=token_provider)
         m = client.get_map("auth-map").blocking()
         m.put("k1", "v1")
@@ -54,8 +54,6 @@ def xml_config(principal, keytab):
                         </actions>
                     </map-permission>
                 </client-permissions>
-                <member-authentication realm="kerberosRealm"/>
-                <client-authentication realm="kerberosRealm"/>
                 <realms>
                     <realm name="krb5Acceptor">
                         <authentication>
@@ -63,23 +61,6 @@ def xml_config(principal, keytab):
                                 <login-module class-name="com.sun.security.auth.module.Krb5LoginModule" usage="REQUIRED">
                                     <properties>
                                         <property name="isInitiator">false</property>
-                                        <property name="useTicketCache">false</property>
-                                        <property name="doNotPrompt">true</property>
-                                        <property name="useKeyTab">true</property>
-                                        <property name="storeKey">true</property>
-                                        <property name="principal">{principal}</property>
-                                        <property name="keyTab">{keytab}</property>
-                                    </properties>
-                                </login-module>
-                            </jaas>
-                        </authentication>
-                    </realm>
-                    <realm name="krb5Intitiator">
-                        <authentication>
-                            <jaas>
-                                <login-module class-name="com.sun.security.auth.module.Krb5LoginModule" usage="REQUIRED">
-                                    <properties>
-                                        <property name="isInitiator">true</property>
                                         <property name="useTicketCache">false</property>
                                         <property name="doNotPrompt">true</property>
                                         <property name="useKeyTab">true</property>
@@ -99,12 +80,6 @@ def xml_config(principal, keytab):
                                 <security-realm>krb5Acceptor</security-realm>
                             </kerberos>
                         </authentication>
-                        <identity>
-                            <kerberos>
-                                <realm>EXAMPLE.COM</realm>
-                                <security-realm>krb5Initiator</security-realm>
-                            </kerberos>
-                        </identity>
                     </realm>
                 </realms>
             </security>            

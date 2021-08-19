@@ -4,22 +4,72 @@
 
 * Python 3.5 or better,
 * Kerberos 5 shared library (`libkrb5-dev` package on Debian/Ubuntu systems),
-* C compiler is required to build the python-gssapi dependency. You may opt to use the system provider
+* C compiler is required to build the python-gssapi dependency. You may opt to use the system provided
   package (`python3-gssapi` on Debian/Ubuntu systems).
+* Kerberos authentication is a Hazelcast Enterprise feature.
 
 ## Install
 
 ```
-pip install -U hazelcast-kerberos
+pip install -U hazelcast-kerberos hazelcast-python-client
 ```
 
-## Usage:
+## Usage
 
-## Server Configuration
+Enabling Kerberos authentication for Hazelcast involves server and client configuration.
+
+### Client Configuration
+
+On the client side, a Kerberos token provider is created and passed to Hazelcast Python Client. The token provider
+authenticates to KDC using the given credentials, receives and caches the Kerberos ticket and retrieves a token. The
+token is passed to the server-side by Hazelcast Python Client for authenticating to the server.
+
+#### Using a Cached Ticket
+
+If a Kerberos ticket was already cached, probably using the `kinit` command, then token provider only needs the
+principal:
+
+```python
+token_provider = hzkerberos.TokenProvider(principal="hz/172.17.0.2@EXAMPLE.COM")
+```
+
+#### Authentication using a Keytab File
+
+You can use a keytab file for retrieving the Kerberos ticket. In this case, full path of the keytab file must be
+specififed:
+
+```python
+token_provider = hzkerberos.TokenProvider(
+    principal="hz/172.17.0.2@EXAMPLE.COM",
+    keytab="/etc/krb5.keytab"
+)
+```
+
+#### Authentication using a Password
+
+It is possible to use a password instead of a keytab file if the pricipal was created with a password:
+
+```python
+token_provider = hzkerberos.TokenProvider(
+    principal="hz/172.17.0.2@EXAMPLE.COM",
+    password="s3cr3t"
+)
+```
+
+### Creating the Hazelcast Python Client
+
+Once the token provider is created, you can pass it to the Hazelcast Python Client constructor. The token provider will
+be used by the client during authentication to the server.
+
+```python
+client = hazelcast.HazelcastClient(token_provider=token_provider)
+```
+
+### Server Configuration
 
 Server security configuration (starting with 4.1) is documented in
 the [Security](https://docs.hazelcast.com/imdg/latest/security/security.html) section of the main Hazelcast
-documentation, and Kerberos authentication is documented in
+documentation. Kerberos authentication is documented in
 the [Security Reams](https://docs.hazelcast.com/imdg/latest/security/security-realms.html#kerberos-authentication)
 sub-section.
 
@@ -32,123 +82,53 @@ read the completed documentation in order to fully understand the security aspec
 
 ```xml
 
-<hazelcast xmlns="http://www.hazelcast.com/schema/config"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://www.hazelcast.com/schema/config
-            http://www.hazelcast.com/schema/config/hazelcast-config-4.2.xsd"
->
-    <security enabled="true">
-        <client-permissions>
-         <map-permission name="auth-map" principal="*">
-            <actions>
-               <action>create</action>
-               <action>destroy</action>
-               <action>put</action>
-               <action>read</action>
-            </actions>
-         </map-permission>
-      </client-permissions>
-      <member-authentication realm="kerberosRealm"/>
-      <client-authentication realm="kerberosRealm"/>
-      <realms>
-         <realm name="krb5Acceptor">
+<security enabled="true">
+    <client-authentication realm="kerberosRealm"/>
+    <realms>
+        <realm name="krb5Acceptor">
             <authentication>
-               <jaas>
-                  <login-module class-name="com.sun.security.auth.module.Krb5LoginModule" usage="REQUIRED">
-                     <properties>
-                        <property name="isInitiator">false</property>
-                        <property name="useTicketCache">false</property>
-                        <property name="doNotPrompt">true</property>
-                        <property name="useKeyTab">true</property>
-                        <property name="storeKey">true</property>
-                        <property name="principal">PRINCIPAL_HERE</property>
-                        <property name="keyTab">KEYTAB_HERE</property>
-                     </properties>
-                  </login-module>
-               </jaas>
+                <jaas>
+                    <login-module class-name="com.sun.security.auth.module.Krb5LoginModule" usage="REQUIRED">
+                        <properties>
+                            <property name="isInitiator">false</property>
+                            <property name="useTicketCache">false</property>
+                            <property name="doNotPrompt">true</property>
+                            <property name="useKeyTab">true</property>
+                            <property name="storeKey">true</property>
+                            <property name="principal">{principal}</property>
+                            <property name="keyTab">{keytab}</property>
+                        </properties>
+                    </login-module>
+                </jaas>
             </authentication>
-         </realm>
-         <realm name="krb5Intitiator">
+        </realm>
+        <realm name="kerberosRealm">
             <authentication>
-               <jaas>
-                  <login-module class-name="com.sun.security.auth.module.Krb5LoginModule" usage="REQUIRED">
-                     <properties>
-                        <property name="isInitiator">true</property>
-                        <property name="useTicketCache">false</property>
-                        <property name="doNotPrompt">true</property>
-                        <property name="useKeyTab">true</property>
-                        <property name="storeKey">true</property>
-                        <property name="principal">PRINCIPAL_HERE</property>
-                        <property name="keyTab">KEYTAB_HERE</property>
-                     </properties>
-                  </login-module>
-               </jaas>
+                <kerberos>
+                    <relax-flags-check>true</relax-flags-check>
+                    <use-name-without-realm>false</use-name-without-realm>
+                    <security-realm>krb5Acceptor</security-realm>
+                </kerberos>
             </authentication>
-         </realm>
-         <realm name="kerberosRealm">
-            <authentication>
-               <kerberos>
-                  <relax-flags-check>true</relax-flags-check>
-                  <use-name-without-realm>false</use-name-without-realm>
-                  <security-realm>krb5Acceptor</security-realm>
-               </kerberos>
-            </authentication>
-            <identity>
-               <kerberos>
-                  <realm>EXAMPLE.COM</realm>
-                  <security-realm>krb5Initiator</security-realm>
-               </kerberos>
-            </identity>
-         </realm>
-      </realms>
-   </security>
-</hazelcast>
-
-```
-
-### Creating the Token Provider
-
-#### Initializing Credentials Externally
-
-If Kerberos credentials are initialized externally, all you need to provide is the service principal name:
-
-```python
-token_provider = hzkerberos.TokenProvider(spn="hz/172.17.0.2@EXAMPLE.COM")
-```
-
-#### Authentication using a Keytab File
-
-```python
-token_provider = hzkerberos.TokenProvider(
-   spn="hz/172.17.0.2@EXAMPLE.COM",
-   keytab="/etc/krb5.keytab"
-)
-```
-
-#### Authentication using a Password
-
-```python
-token_provider = hzkerberos.TokenProvider(
-   spn="hz/172.17.0.2@EXAMPLE.COM",
-   password="s3cr3t"
-)
-```
-
-### Creating the Hazelcast Python Client
-
-```python
-
-client = hazelcast.HazelcastClient(token_provider=token_provider)
+        </realm>
+    </realms>
+</security>            
 ```
 
 ## Running the Tests
 
-1. Build the Docker image:
+Running the tests requires Docker.
+
+1. Build the Docker image, this is required only once:
     ```
     cd docker
-    docker build -t hazelcast/pykerb:latest --build-arg HAZELCAST_ENTERPRISE_KEY="..." .
+    docker build -t hazelcast/pykerberos:latest \
+       --build-arg HAZELCAST_ENTERPRISE_KEY="..." .
     ```
-2. Run the Docker image:
+2. Run the container to run the tests whenever the code changes:
     ```
-    docker run -it --rm --name pykerb -v `pwd`/..:/home/hz/app --env HAZELCAST_ENTERPRISE_KEY="..."  hazelcast/pykerb:latest
+    docker run -it --rm --name pykerberos \
+       -v `pwd`/..:/home/hz/app \
+       --env HAZELCAST_ENTERPRISE_KEY="..." \
+       hazelcast/pykerberos:latest
     ```
