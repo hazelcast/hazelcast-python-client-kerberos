@@ -44,6 +44,7 @@ def xml_config(principal, keytab):
             http://www.hazelcast.com/schema/config/hazelcast-config-4.2.xsd"
         >
             <security enabled="true">
+                <client-authentication realm="kerberosRealm"/>
                 <client-permissions>
                     <map-permission name="auth-map" principal="*">
                         <actions>
