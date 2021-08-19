@@ -83,7 +83,6 @@ read the completed documentation in order to fully understand the security aspec
 ```xml
 
 <security enabled="true">
-    <client-authentication realm="kerberosRealm"/>
     <realms>
         <realm name="krb5Acceptor">
             <authentication>

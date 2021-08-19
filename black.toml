@@ -2,15 +2,7 @@
 line-length = 100
 exclude = '''
 /(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
+    build
   | dist
   | venv
 
