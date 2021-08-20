@@ -1,0 +1,11 @@
+[tool.black]
+line-length = 100
+exclude = '''
+/(
+    build
+  | dist
+  | venv
+  | README.md
+
+)/
+'''
