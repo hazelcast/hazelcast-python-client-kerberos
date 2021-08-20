@@ -7,6 +7,7 @@
 * Kerberos 5 shared library (`libkrb5-dev` package on Debian/Ubuntu systems),
 * C compiler is required to build the python-gssapi dependency. You may opt to use the system provided
   package (`python3-gssapi` on Debian/Ubuntu systems),
+* Usable with Hazelcast Python Client 4.2.1 and up,
 * Kerberos authentication is a Hazelcast Enterprise feature.
 
 ## Install
