@@ -135,6 +135,7 @@ class Krb5(object):
     lib = None
     cc_close = None
     cc_default_name = None
+    cc_destroy = None
     cc_resolve = None
     free_context = None
     free_cred_contents = None
@@ -262,63 +263,70 @@ class Krb5(object):
             f.restype = krb5_error_code
             Krb5.cc_close = f
 
-    def get_token(self, principal="", password="", keytab=""):
+            f = lib.krb5_cc_destroy
+            f.argtypes = (krb5_context, krb5_ccache)
+            f.restype = krb5_error_code
+            Krb5.cc_destroy = f
+
+    @classmethod
+    def get_token(cls, principal="", password="", keytab=""):
         # type: (Krb5, str, str, str) -> bytes
 
-        if self.lib and (password or keytab):
-            self._cache_credentials(principal, password, keytab)
+        if cls.lib and (password or keytab):
+            cls._cache_credentials(principal, password, keytab)
         server_name = gssapi.Name(principal)
         client_ctx = gssapi.SecurityContext(name=server_name, usage="initiate")
         token = client_ctx.step()
         return token
 
-    def _cache_credentials(self, principal, password, keytab):
+    @classmethod
+    def _cache_credentials(cls, principal, password, keytab):
         # authenticates the principal by using a password or the keytab and caches the credentials.
 
         def cleanup():
             if keytab_handle:
-                self.kt_close(context, keytab_handle)
-            self.free_principal(context, client_princ)
-            self.free_cred_contents(context, byref(creds))
-            self.get_init_creds_opt_free(context, optp)
-            self.cc_close(context, cache)
-            self.free_context(context)
+                cls.kt_close(context, keytab_handle)
+            cls.free_principal(context, client_princ)
+            cls.free_cred_contents(context, byref(creds))
+            cls.get_init_creds_opt_free(context, optp)
+            cls.cc_close(context, cache)
+            cls.free_context(context)
 
         def ok(ret):
             if ret:
                 cleanup()
-                raise KerberosError(msg=self._make_error_msg(context, ret), code=ret)
+                raise KerberosError(msg=cls._make_error_msg(context, ret), code=ret)
 
         keytab_handle = None
         context = krb5_context()
-        self.init_context(byref(context))
+        cls.init_context(byref(context))
         creds = Krb5Creds()
         client_princ = krb5_principal()
-        ok(self.parse_name(context, principal.encode("utf-8"), byref(client_princ)))
+        ok(cls.parse_name(context, principal.encode("utf-8"), byref(client_princ)))
 
         # initialize credentials options
         opt = Krb5GetInitCredsOpt()
         optp = pointer(opt)
-        ok(self.get_init_creds_opt_alloc(context, byref(optp)))
+        ok(cls.get_init_creds_opt_alloc(context, byref(optp)))
 
         # set the credentials cache
-        cache_name = self.cc_default_name(context)
+        cache_name = cls.cc_default_name(context)
         cache = krb5_ccache()
-        ok(self.cc_resolve(context, cache_name, byref(cache)))
-        ok(self.get_init_creds_opt_set_out_ccache(context, optp, cache))
+        ok(cls.cc_resolve(context, cache_name, byref(cache)))
+        ok(cls.get_init_creds_opt_set_out_ccache(context, optp, cache))
 
         # authenticate
         if keytab:
             # keytab is specified, try load it
             keytab_handle = krb5_keytab()
-            ret = self.kt_resolve(context, keytab.encode("utf-8"), byref(keytab_handle))
+            ret = cls.kt_resolve(context, keytab.encode("utf-8"), byref(keytab_handle))
             if not ret:
-                ret = self.get_init_creds_keytab(
+                ret = cls.get_init_creds_keytab(
                     context, byref(creds), client_princ, keytab_handle, 0, None, optp
                 )
         else:
             # no keytab, try to use the password
-            ret = self.get_init_creds_password(
+            ret = cls.get_init_creds_password(
                 context,
                 byref(creds),
                 client_princ,
@@ -330,6 +338,27 @@ class Krb5(object):
                 None,
             )
         ok(ret)
+        cleanup()
+
+    @classmethod
+    def _destroy_cache(cls):
+        def cleanup():
+            # cls.cc_close(context, cache)
+            cls.free_context(context)
+
+        def ok(ret):
+            if ret:
+                cleanup()
+                raise KerberosError(msg=cls._make_error_msg(context, ret), code=ret)
+
+        context = krb5_context()
+        cls.init_context(byref(context))
+
+        # set the credentials cache
+        cache_name = cls.cc_default_name(context)
+        cache = krb5_ccache()
+        ok(cls.cc_resolve(context, cache_name, byref(cache)))
+        ok(cls.cc_destroy(context, cache))
         cleanup()
 
     @classmethod
