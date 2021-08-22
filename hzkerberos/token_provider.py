@@ -25,15 +25,15 @@ class TokenProvider(object):
     """
 
     def __init__(
-            self,
-            principal="",
-            spn="",
-            prefix="hz/",
-            realm="",
-            canonical_hostname=False,
-            keytab="",
-            password="",
-            libname="libkrb5.so",
+        self,
+        principal="",
+        spn="",
+        prefix="hz/",
+        realm="",
+        canonical_hostname=False,
+        keytab="",
+        password="",
+        libname="libkrb5.so",
     ):
         # type: (TokenProvider, str, str, str, str, bool, str, str, str) -> None
         if password and keytab:

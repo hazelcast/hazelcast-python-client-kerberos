@@ -2,7 +2,6 @@ __all__ = ("KerberosError",)
 
 
 class KerberosError(RuntimeError):
-
     def __init__(self, msg, code):
         self.code = code
         code_msg = ERROR_MAP.get(code, "UNKNOWN: %d" % code)
@@ -11,7 +10,6 @@ class KerberosError(RuntimeError):
 
 
 class TokenRetrievalError(RuntimeError):
-
     def __init__(self, msg):
         msg = "Error retrieving a token: %s" % msg
         super().__init__(msg)

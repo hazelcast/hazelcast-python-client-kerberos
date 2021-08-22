@@ -65,7 +65,6 @@ class Krb5Test(unittest.TestCase):
 
 
 class Address:
-
     def __init__(self, host=""):
         self.host = host or self._get_current_ip()
 
