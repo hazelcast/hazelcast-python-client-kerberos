@@ -69,3 +69,7 @@ target/
 .directory
 
 *.jar
+
+.env
+*.BAC
+*.OLD

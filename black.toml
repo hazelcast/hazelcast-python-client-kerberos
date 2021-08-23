@@ -5,7 +5,6 @@ exclude = '''
     build
   | dist
   | venv
-  | README.md
 
 )/
 '''

@@ -1,9 +1,12 @@
+import logging
 import socket
 
 from .c import Krb5
 from .errors import TokenRetrievalError
 
 __all__ = ("TokenProvider",)
+
+_log = logging.getLogger("hzkerberos")
 
 
 class TokenProvider(object):
@@ -49,6 +52,7 @@ class TokenProvider(object):
 
     def token(self, address=None):
         # address.host is assumed to be the connected IP of the member
+        _log.debug("token host: %s", address.host)
         principal = self.principal
         if not principal:
             if not address:
@@ -57,6 +61,7 @@ class TokenProvider(object):
             if self.canonical_hostname:
                 host = _resolve_host(host)
             principal = _make_principal(host, self.spn, self.prefix, self.realm)
+        _log.debug("token principal: %s", principal)
         return self.__krb5.get_token(
             principal=principal, password=self.password, keytab=self.keytab
         )
