@@ -35,7 +35,7 @@ class Krb5Test(unittest.TestCase):
 
     def test_get_token_realm_unknown_failure(self):
         principal = make_principal(realm="foo.com")
-        p = hzkerberos.TokenProvider(principal=principal, password="Password01")
+        p = hzkerberos.TokenProvider(principal=principal, keytab="foo")
         self.assertRaisesRegex(
             hzkerberos.KerberosError,
             "KRB5_REALM_UNKNOWN",
@@ -45,7 +45,7 @@ class Krb5Test(unittest.TestCase):
     def test_get_token_principal_unknown_failure(self):
         # unknown username
         principal = make_principal(prefix="hz2")
-        p = hzkerberos.TokenProvider(principal=principal, password="Password01")
+        p = hzkerberos.TokenProvider(principal=principal, keytab="foo")
         self.assertRaisesRegex(
             hzkerberos.KerberosError,
             "KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN",
