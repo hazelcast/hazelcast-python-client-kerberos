@@ -12,9 +12,7 @@ _log = logging.getLogger("hzkerberos")
 class TokenProvider(object):
     """TokenProvider is a Hazelcast token provider for Kerberos authentication.
 
-    The provider tries to acquire and credentials if one of
-    ``password`` or ``keytab`` arguments is given. ``password`` and ``keytab`` are mutually exclusive,
-    at most one of them should be specified.
+    The provider tries to acquire and cache the Kerberos ticket if ``keytab`` arguments is given.
 
     Keyword Args:
         principal (`str`): Service principal name. E.g., ``hz/127.0.0.1@EXAMPLE.COM``
@@ -23,7 +21,6 @@ class TokenProvider(object):
         realm (`str`): Service principal name. E.g., ``hz/127.0.0.1@EXAMPLE.COM``
         canonical_hostname (`str`): Service principal name. E.g., ``hz/127.0.0.1@EXAMPLE.COM``
         keytab (`str`): Optional keytab for the principal.
-        password (`str`): Optional password for the principal.
         libname (`str`): Optional Kerberos5 library name.
     """
 
@@ -35,18 +32,14 @@ class TokenProvider(object):
         realm="",
         canonical_hostname=False,
         keytab="",
-        password="",
         libname="libkrb5.so",
     ):
-        # type: (TokenProvider, str, str, str, str, bool, str, str, str) -> None
-        if password and keytab:
-            raise ValueError("password and keytab parameters are mutually exclusive")
+        # type: (TokenProvider, str, str, str, str, bool, str, str) -> None
         self.principal = principal
         self.spn = spn
         self.prefix = prefix
         self.realm = realm
         self.canonical_hostname = canonical_hostname
-        self.password = password
         self.keytab = keytab
         self.__krb5 = Krb5(libname=libname)
 
@@ -63,7 +56,7 @@ class TokenProvider(object):
             principal = _make_principal(host, self.spn, self.prefix, self.realm)
         _log.debug("token principal: %s", principal)
         return self.__krb5.get_token(
-            principal=principal, password=self.password, keytab=self.keytab
+            principal=principal, keytab=self.keytab
         )
 
 

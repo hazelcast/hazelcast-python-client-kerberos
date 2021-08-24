@@ -24,6 +24,14 @@ Enabling Kerberos authentication for Hazelcast involves server and client config
 
 On the client side, a Kerberos token provider is created and passed to Hazelcast Python Client. The token provider authenticates to KDC using the given credentials, receives and caches the Kerberos ticket and retrieves a token. The token is passed to the server-side by Hazelcast Python Client for authenticating to the server.
 
+#### Using a Cached Ticket
+
+If a Kerberos ticket was already cached, probably using the `kinit` command, then token provider only needs the principal:
+
+```python
+token_provider = hzkerberos.TokenProvider()
+```
+
 #### Authentication using a Keytab File
 
 You can use a keytab file for retrieving the Kerberos ticket. In this case, full path of the keytab file must be specififed:
@@ -74,7 +82,13 @@ The following XML fragment can be used as an example of a working server configu
 </security>
 ```
 
+## Notes
+
+1. Only the default cache is supported for storing/loading the Kerberos ticket. The default cache name is resolved using `krb5_cc_default_name` call.
+
 ## Running the Tests
+
+**The Docker setup in this setup is strictly for test purposes.**
 
 Running the tests requires Docker Compose.
 
@@ -101,4 +115,16 @@ Running the tests requires Docker Compose.
     ```
 
 When a container runs, it executes the corresponding default action, e.g., `test` for the app container.
-In order to get a shell instead of the default action, you can use the `/bin/bash` command. 
+In order to get a shell instead of the default action, you can use the `/bin/bash` command.
+
+### Accessing KDC
+
+When the docker compose setup is running, you can access KDC by accessing its container:
+```
+docker-compose exec kdc /bin/bash
+```
+
+And starting `kadmin.local`:
+```
+rlwrap kadmin.local
+```

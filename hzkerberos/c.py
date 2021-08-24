@@ -335,7 +335,7 @@ class Krb5(object):
                 None,
                 0,
                 None,
-                None,
+                optp,
             )
         ok(ret)
         cleanup()

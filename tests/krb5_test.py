@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import hzkerberos
@@ -19,6 +20,15 @@ class Krb5Test(unittest.TestCase):
 
     def test_get_token_with_keytab(self):
         p = hzkerberos.TokenProvider(keytab=default_keytab())
+        tok = p.token(address=self.default_address)
+        self.assertIsNotNone(tok)
+        self.assertIsInstance(tok, bytes)
+
+    def test_get_token_with_cached_creds(self):
+        # login and cache the ticket
+        os.system("echo Password01 | kinit jduke@EXAMPLE.COM")
+        # use cached ticket
+        p = hzkerberos.TokenProvider()
         tok = p.token(address=self.default_address)
         self.assertIsNotNone(tok)
         self.assertIsInstance(tok, bytes)

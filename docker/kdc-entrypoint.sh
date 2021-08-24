@@ -22,7 +22,11 @@ add_principal () {
 }
 
 add_principals () {
+  # delete the keytab, for clean state
   rm -f $keytab
+  # create default credentials
+  add_principal "jduke@EXAMPLE.COM" "Password01"
+  # create given credentials
   shift
   for host in "$@"; do
     local ip
@@ -51,9 +55,6 @@ realm=${domain^^}
 log_info "Realm    = $realm"
 log_info "Keytab   = $keytab"
 log_info
-
-echo "$ip $domain" >> /etc/hosts
-echo "$ip $host.$domain" >> /etc/hosts
 
 case "$cmd" in
   "/bin/bash")
