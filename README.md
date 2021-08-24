@@ -92,15 +92,17 @@ The following XML fragment can be used as an example of a working server configu
 
 Running the tests requires Docker Compose.
 
-1. Create an `.env` file with the Hazelcast Enterprise license key in the root of the project:
+1. Put `hazelcast-enterprise-4.2.2.jar`, `log4j-api-2.14.1.jar` and `log4j-core-2.14.1.jar` in the `docker` folder. *This is a temporary step to be removed in another iteration*
+
+2. Create an `.env` file with the Hazelcast Enterprise license key in the root of the project:
     ```
     HZ_LICENSEKEY=...
     ```
-2. Run docker compose, which creates KDC/KAdmin and two Hazelcast Enterprise containers:
+3. Run docker compose, which creates KDC/KAdmin and two Hazelcast Enterprise containers:
     ```    
     docker-compose up
     ```
-3. Build the Docker image for tests, this is required only once:
+4. Build the Docker image for tests, this is required only once:
     ```
     docker build -t hazelcast-python-client-kerberos_app:latest -f app.Dockerfile .
     ```
