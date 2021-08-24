@@ -41,4 +41,3 @@ class Krb5Test(unittest.TestCase):
             "KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN",
             lambda: p.token(address=self.default_address),
         )
-s
