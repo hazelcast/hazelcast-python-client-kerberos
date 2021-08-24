@@ -115,9 +115,11 @@ Running the tests requires Docker Compose.
         -v hazelcast-python-client-kerberos_common:/common \
         hazelcast-python-client-kerberos_app:latest test
     ```
+### Notes
 
-When a container runs, it executes the corresponding default action, e.g., `test` for the app container.
-In order to get a shell instead of the default action, you can use the `/bin/bash` command.
+1. When a container runs, it executes the corresponding default action, e.g., `test` for the app container. In order to get a shell instead of the default action, you can use the `/bin/bash` command.
+2. If `VERBOSE` environment variable is `1`, tracing is enabled for entrypoint scripts.
+3. `LOGGING_LEVEL` environment variable for Hazelcast containers controls the logging level.
 
 ### Accessing KDC
 
