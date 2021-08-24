@@ -26,7 +26,7 @@ On the client side, a Kerberos token provider is created and passed to Hazelcast
 
 #### Using a Cached Ticket
 
-If a Kerberos ticket was already cached, probably using the `kinit` command, then token provider only needs the principal:
+If a Kerberos ticket was already cached, probably using the `kinit` command, then token provider can be created with no parameters:
 
 ```python
 token_provider = hzkerberos.TokenProvider()
@@ -34,7 +34,7 @@ token_provider = hzkerberos.TokenProvider()
 
 #### Authentication using a Keytab File
 
-You can use a keytab file for retrieving the Kerberos ticket. In this case, full path of the keytab file must be specififed:
+You can use a keytab file for retrieving the Kerberos ticket. In this case, full path of the keytab file must be specified:
 
 ```python
 token_provider = hzkerberos.TokenProvider(keytab="/etc/krb5.keytab")
