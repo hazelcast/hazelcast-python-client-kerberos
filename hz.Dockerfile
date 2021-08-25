@@ -52,13 +52,16 @@ USER hz
 
 RUN mkdir $HOME/lib
 
-COPY docker/hazelcast-enterprise-4.2.2.jar $HOME/lib/
-COPY docker/log4j-api-2.14.1.jar $HOME/lib/
-COPY docker/log4j-core-2.14.1.jar $HOME/lib/
 COPY docker/log4j2.properties $HOME/
 COPY docker/start-hz.sh $HOME/
 
 USER root
+
+COPY docker/download-hz-ee-all.sh /$HOME/
+
+RUN \
+  cd $HOME/lib &&\
+  bash $HOME/download-hz-ee-all.sh
 
 COPY docker/hz-entrypoint.sh /root/
 COPY docker/entrypoint.inc.sh /root/

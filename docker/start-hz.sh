@@ -9,7 +9,7 @@ fi
 
 export LOGGING_PATTERN="%d [%highlight{\${LOG_LEVEL_PATTERN:-%5p}}{FATAL=red, ERROR=red, WARN=yellow, INFO=green, DEBUG=magenta}] [%style{%t{1.}}{cyan}] [%style{%c{1.}}{blue}]: %m%n"
 
-cp="lib/hazelcast-enterprise-4.2.2.jar:lib/log4j-api-2.14.1.jar:lib/log4j-core-2.14.1.jar"
+cp="lib/hazelcast-enterprise-4.2.2.jar:lib/log4j-api/2.14.1.jar:lib/log4j-core/2.14.1.jar"
 opts="
 -Dhazelcast.phone.home.enabled=false \
 -Dhazelcast.config=/home/hz/hazelcast.xml \

@@ -40,6 +40,27 @@ You can use a keytab file for retrieving the Kerberos ticket. In this case, full
 token_provider = hzkerberos.TokenProvider(keytab="/etc/krb5.keytab")
 ```
 
+#### Overriding the Generated Service Principal Name
+
+A service principal name (SPN) has the following structure:
+
+    [SERVICE-NAME-PREFIX/][SERVICE-IP][@REALM]
+
+By default, the service principal name is generated automatically, using the following components:
+* SERVICE-NAME-PREFIX: `hz/`
+* SERVICE-IP: IP address of the member
+* REALM: Blank
+
+You can skip SPN generation by specifying the `principal` parameters
+```python
+token_provider = hzkerberos.TokenProvider(principal="hz/service@EXAMPLE.COM")
+```
+
+Or override parts of it using, `spn` ,`prefix` and `realm` parameters:
+```python
+token_provider = hzkerberos.TokenProvider(spn="my-service", prefix="HTTP", realm="EXAMPLE.COM")
+```
+
 ### Creating the Hazelcast Python Client
 
 Once the token provider is created, you can pass it to the Hazelcast Python Client constructor. The token provider will be used by the client during authentication to the server.
@@ -111,7 +132,7 @@ Running the tests requires Docker Compose.
     docker run --name hzkerberos_test \
         --env-file .env \
         --network=hazelcast-python-client-kerberos_hz \
-        -v `pwd`:/home/hz/app
+        -v `pwd`:/home/hz/app \
         -v hazelcast-python-client-kerberos_common:/common \
         hazelcast-python-client-kerberos_app:latest test
     ```

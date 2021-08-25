@@ -15,12 +15,13 @@ class TokenProvider(object):
     The provider tries to acquire and cache the Kerberos ticket if ``keytab`` arguments is given.
 
     Keyword Args:
-        principal (`str`): Service principal name. E.g., ``hz/127.0.0.1@EXAMPLE.COM``
-        spn (`str`): Service principal name. E.g., ``hz/127.0.0.1@EXAMPLE.COM``
-        prefix (`str`): Service principal name. E.g., ``hz/127.0.0.1@EXAMPLE.COM``
-        realm (`str`): Service principal name. E.g., ``hz/127.0.0.1@EXAMPLE.COM``
-        canonical_hostname (`str`): Service principal name. E.g., ``hz/127.0.0.1@EXAMPLE.COM``
-        keytab (`str`): Optional keytab for the principal.
+        principal (`str`): Optional Kerberos principal. If provided, it will be used verbatim as the Kerberos principal. E.g., ``hz/127.0.0.1@EXAMPLE.COM``
+        spn (`str`): Optional Service principal name (SPN). If provided (and principal is not provided) it will be used as the Kerberos principal,
+            adding the realm if necessary. If not provided, it will be built using prefix, IP/host of the member and the realm. E.g., ``hz/127.0.0.1``
+        prefix (`str`): Optional prefix for SPN, by default ``hz``.
+        realm (`str`): Optional realm for SPN.
+        canonical_hostname (`bool`): If ``true``, attempts to convert member IPs to hostnames. It is ``false`` by default.
+        keytab (`str`): Optional keytab for the principal. If not provided, the library attempts to use an already cached ticket.
         libname (`str`): Optional Kerberos5 library name.
     """
 
@@ -28,7 +29,7 @@ class TokenProvider(object):
         self,
         principal="",
         spn="",
-        prefix="hz/",
+        prefix="hz",
         realm="",
         canonical_hostname=False,
         keytab="",
@@ -62,8 +63,10 @@ class TokenProvider(object):
 
 def _make_principal(host, spn="", prefix="hz/", realm=""):
     if not spn:
+        if prefix and not prefix.endswith("/"):
+            prefix = "%s/" % prefix
         spn = "%s%s" % (prefix, host)
-    if realm:
+    if realm and "@" not in spn:
         spn = "%s@%s" % (spn, realm.upper())
     return spn
 
@@ -73,7 +76,7 @@ def _resolve_host(ip):
     try:
         s = socket.gethostbyaddr(ip)
         return s[0]
-    except socket.herror as e:
+    except (socket.herror, socket.gaierror) as e:
         raise TokenRetrievalError("%s: %s" % (e.args[1], ip))
     except socket.gaierror as e:
         raise TokenRetrievalError("%s: %s" % (e.args[1], ip))
