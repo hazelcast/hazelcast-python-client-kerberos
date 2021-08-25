@@ -46,7 +46,8 @@ class TokenProvider(object):
 
     def token(self, address=None):
         # address.host is assumed to be the connected IP of the member
-        _log.debug("token host: %s", address.host)
+        if address:
+            _log.debug("token host: %s", address.host)
         principal = self.principal
         if not principal:
             if not address:
