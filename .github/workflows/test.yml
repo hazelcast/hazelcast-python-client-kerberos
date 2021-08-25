@@ -17,6 +17,8 @@ jobs:
         env:
           HZ_LICENSEKEY: "${HAZELCAST_LICENSE_KEY}"
         run: |
+          cat /etc/hosts && \
+          getent hosts hz1 || echo "not found: hz1" && \
           docker run --name hzkerberos_test \
               -e HZ_LICENSEKEY="${HZ_LICENSEKEY}" \
               --network=hazelcast-python-client-kerberos_hz \
