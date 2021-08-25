@@ -5,11 +5,11 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v2"
-      - name: "Build and run required services"
-        env:
-          HZ_LICENSEKEY: "${HAZELCAST_LICENSE_KEY}"
-        run: |
-          docker-compose up -d
+#      - name: "Build and run required services"
+#        env:
+#          HZ_LICENSEKEY: "${HAZELCAST_LICENSE_KEY}"
+#        run: |
+#          docker-compose up -d
       - name: "Build hazelcast-kerberos image"
         run: |
           docker build -t hazelcast-python-client-kerberos_app:latest -f app.Dockerfile .
@@ -17,8 +17,8 @@ jobs:
         env:
           HZ_LICENSEKEY: "${HAZELCAST_LICENSE_KEY}"
         run: |
-          cat /etc/hosts && \
           getent hosts hz1 || echo "not found: hz1" && \
+          getent hzkerberos-hz2.hazelcast-python-client-kerberos_hz || echo "not found: hzkerberos-hz2.hazelcast-python-client-kerberos_hz" && \
           docker run --name hzkerberos_test \
               -e HZ_LICENSEKEY="${HZ_LICENSEKEY}" \
               --network=hazelcast-python-client-kerberos_hz \
