@@ -16,6 +16,6 @@ jobs:
           docker run --name hzkerberos_test \
               -e HZ_LICENSEKEY="${HZ_LICENSEKEY}" \
               --network=hazelcast-python-client-kerberos_hz \
-              -v `pwd`:/home/hz/app
+              -v `pwd`:/home/hz/app \
               -v hazelcast-python-client-kerberos_common:/common \
               hazelcast-python-client-kerberos_app:latest test
