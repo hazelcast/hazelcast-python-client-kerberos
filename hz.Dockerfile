@@ -2,7 +2,6 @@ FROM debian:buster
 
 LABEL maintainer="Hazelcast Engineering <info@hazelcast.com>"
 
-ARG HAZELCAST_ENTERPRISE_KEY=""
 ARG HZ_VERSION=4.2.2
 
 # Create the default users and groups.
