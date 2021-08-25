@@ -18,7 +18,7 @@ jobs:
           HZ_LICENSEKEY: "${HAZELCAST_LICENSE_KEY}"
         run: |
           getent hosts hz1 || echo "not found: hz1" && \
-          getent hzkerberos-hz2.hazelcast-python-client-kerberos_hz || echo "not found: hzkerberos-hz2.hazelcast-python-client-kerberos_hz" && \
+          getent hosts hzkerberos-hz2.hazelcast-python-client-kerberos_hz || echo "not found: hzkerberos-hz2.hazelcast-python-client-kerberos_hz" && \
           docker run --name hzkerberos_test \
               -e HZ_LICENSEKEY="${HZ_LICENSEKEY}" \
               --network=hazelcast-python-client-kerberos_hz \
