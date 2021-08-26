@@ -19,7 +19,7 @@ class TokenProvider(object):
         keytab (`str`): Optional keytab for the principal. If not provided, the library attempts to use an already cached ticket.
             Should not be used together with the ``password`` option.
         password (`str`): Optional password for the principal. If not provided, the library attempts to use an already cached ticket.
-            Should not be using together with the ``keytab`` option.
+            Should not be used together with the ``keytab`` option.
         spn (`str`): Optional Service principal name (SPN). If not provided, it will be built using prefix, IP/host of the member and the realm. E.g., ``hz/127.0.0.1@EXAMPLE.COM``.
         prefix (`str`): Optional prefix for SPN, by default ``hz/``.
         realm (`str`): Optional realm for SPN.
