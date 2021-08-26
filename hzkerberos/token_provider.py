@@ -41,7 +41,7 @@ class TokenProvider(object):
         # type: (TokenProvider, str, str, str, str, str, str, bool, str) -> None
         if principal:
             if not keytab and not password:
-                raise ValueError("keytab and password is required when principal is specified")
+                raise ValueError("keytab or password is required when the principal is specified")
         if keytab and password:
             raise ValueError("keytab and password are mutually exclusive")
         self.principal = principal
