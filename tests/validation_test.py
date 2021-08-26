@@ -5,7 +5,7 @@ from hzkerberos.token_provider import _make_spn, TokenProvider
 
 class ValidationTest(unittest.TestCase):
 
-    def test_make_principal(self):
+    def test_make_spn(self):
         table = [
             # target, input
             ("hz/1.2.3.4", lambda: _make_spn("1.2.3.4")),
