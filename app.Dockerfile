@@ -1,9 +1,6 @@
 FROM debian:stretch
 
-LABEL maintainer="Hazelcast Engineering <>"
-
-ARG KERBEROS_PASSWORD=Password01
-ARG HAZELCAST_ENTERPRISE_KEY=""
+LABEL maintainer="Hazelcast Engineering <info@hazelcast.com>"
 
 # Create the default users and groups.
 RUN \
@@ -18,10 +15,10 @@ ENV \
 WORKDIR $HOME
 
 # Make sure documentation is not cached.
-COPY etc/apt/apt.conf.d/02nocache /etc/apt/apt.conf.d/02nocache
-COPY etc/dpkg/dpkg.cfg.d/01_nodoc /etc/dpkg/dpkg.cfg.d/01_nodoc
+COPY docker/etc/apt/apt.conf.d/02nocache /etc/apt/apt.conf.d/02nocache
+COPY docker/etc/dpkg/dpkg.cfg.d/01_nodoc /etc/dpkg/dpkg.cfg.d/01_nodoc
 
-COPY create_conf.sh /root
+COPY docker/create_conf.sh /root
 
 RUN \
   bash /root/create_conf.sh
@@ -29,19 +26,18 @@ RUN \
 RUN \
   chown -R hz:hz $HOME && \
   apt-get update && \
-  apt-get install -y --no-install-recommends openjdk-8-jdk-headless && \
   apt-get install -y --no-install-recommends \
     ca-certificates \
     libreadline7 \
     libssl1.1 \
     zlib1g \
-    krb5-user krb5-kdc krb5-admin-server krb5-multidev \
+    krb5-user \
     libkrb5-dev \
     python3-dev python3-venv \
     vim \
     build-essential \
-    maven \
     git \
+    rlwrap \
     && \
   rm -rf /var/lib/apt/lists/* && \
   find /usr/share/doc -depth -type f ! -name copyright|xargs rm || true && \
@@ -49,15 +45,10 @@ RUN \
   rm -rf /usr/share/man/* /usr/share/info/* rm -rf /usr/share/lintian/* && \
   rm -rf /usr/share/groff/* /usr/share/linda/* /var/cache/man/*
 
-RUN \
-  printf "${KERBEROS_PASSWORD}\n${KERBEROS_PASSWORD}" | krb5_newrealm && \
-  kadmin.local -q "addprinc -pw ${KERBEROS_PASSWORD} admin"
-
 USER hz
 
-COPY rc.sh $HOME/rc.sh
-COPY requirements-test.txt $HOME/requirements-test.txt
-COPY requirements.txt $HOME/requirements.txt
+COPY requirements-test.txt $HOME/
+COPY requirements.txt $HOME/
 
 RUN \
   python3 -m venv venv && \
@@ -65,17 +56,12 @@ RUN \
   $HOME/venv/bin/pip3 install -r $HOME/requirements-test.txt &&\
   $HOME/venv/bin/pip3 install -r $HOME/requirements.txt
 
-# starting and stopping the client to download cluster artifacts
-RUN \
-  bash $HOME/rc.sh start && \
-  bash $HOME/rc.sh stop
-
 USER root
 
-COPY entrypoint.sh /root/entrypoint.sh
+COPY docker/app-entrypoint.sh /root/
+COPY docker/entrypoint.inc.sh /root/
 
-RUN \
-  chmod +x /root/entrypoint.sh
+RUN chmod +x /root/app-entrypoint.sh
 
-ENTRYPOINT ["/root/entrypoint.sh"]
+ENTRYPOINT ["/root/app-entrypoint.sh"]
 CMD ["test"]

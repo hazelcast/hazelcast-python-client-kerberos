@@ -1,0 +1,58 @@
+version: "3.0"
+volumes:
+  common:
+networks:
+  hz:
+services:
+
+  kdc:
+    container_name: "hzkerberos-kdc"
+    tty: true
+    image: "hazelcast-python-client-kerberos_kdc"
+    build:
+      dockerfile: "kdc.Dockerfile"
+      context: "."
+    command:
+      - "add_principals"
+      - "hz1"
+      - "hz2"
+    volumes:
+      - "common:/common"
+    networks:
+      - "hz"
+
+  hz1:
+    container_name: "hzkerberos-hz1"
+    tty: true
+    image: "hazelcast-python-client-kerberos_hz"
+    build:
+      dockerfile: "hz.Dockerfile"
+      context: "."
+    command:
+      - "run"
+    volumes:
+      - "common:/common:ro"
+    environment:
+      HZ_LICENSEKEY: "${HZ_LICENSEKEY}"
+    depends_on:
+      - "kdc"
+    networks:
+      - "hz"
+
+  hz2:
+    container_name: "hzkerberos-hz2"
+    tty: true
+    image: "hazelcast-python-client-kerberos_hz"
+    build:
+      dockerfile: "hz.Dockerfile"
+      context: "."
+    command:
+      - "run"
+    volumes:
+      - "common:/common:ro"
+    environment:
+      HZ_LICENSEKEY: "${HZ_LICENSEKEY}"
+    depends_on:
+      - "kdc"
+    networks:
+      - "hz"
