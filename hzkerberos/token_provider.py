@@ -17,7 +17,7 @@ class TokenProvider(object):
     Keyword Args:
         principal (`str`): Optional Kerberos principal. If provided, it will be used as the Kerberos principal. E.g., ``jduke@EXAMPLE.COM``
         keytab (`str`): Optional keytab for the principal. If not provided, the library attempts to use an already cached ticket.
-            Should not be using together with the ``password`` option.
+            Should not be used together with the ``password`` option.
         password (`str`): Optional password for the principal. If not provided, the library attempts to use an already cached ticket.
             Should not be using together with the ``keytab`` option.
         spn (`str`): Optional Service principal name (SPN). If not provided, it will be built using prefix, IP/host of the member and the realm. E.g., ``hz/127.0.0.1@EXAMPLE.COM``.
