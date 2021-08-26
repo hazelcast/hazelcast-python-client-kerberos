@@ -34,31 +34,34 @@ token_provider = hzkerberos.TokenProvider()
 
 #### Authentication using a Keytab File
 
-You can use a keytab file for retrieving the Kerberos ticket. In this case, full path of the keytab file must be specified:
+You can use a keytab file for retrieving the Kerberos ticket. In this case, the principal and full path of the keytab file must be specified:
 
 ```python
-token_provider = hzkerberos.TokenProvider(keytab="/etc/krb5.keytab")
+token_provider = hzkerberos.TokenProvider(principal="jduke@EXAMPLE.COM", keytab="/etc/krb5.keytab")
+```
+
+#### Authentication using a Password
+
+You can also use a password retrieving the Kerberos ticket. In this case, the principal and the password must be specified:
+
+```python
+token_provider = hzkerberos.TokenProvider(principal="jduke@EXAMPLE.COM", password="s3cr3t")
 ```
 
 #### Overriding the Generated Service Principal Name
 
 A service principal name (SPN) has the following structure:
 
-    [SERVICE-NAME-PREFIX/][SERVICE-IP][@REALM]
+    [SERVICE-NAME-PREFIX/][SERVICE-HOST][@REALM]
 
 By default, the service principal name is generated automatically, using the following components:
 * SERVICE-NAME-PREFIX: `hz/`
-* SERVICE-IP: IP address of the member
+* SERVICE-HOST: Host or IP address of the member
 * REALM: Blank
 
-You can skip SPN generation by specifying the `principal` parameters
+You can override SPN generation by specifying one or many of `spn` ,`prefix` and `realm` parameters:
 ```python
-token_provider = hzkerberos.TokenProvider(principal="hz/service@EXAMPLE.COM")
-```
-
-Or override parts of it using, `spn` ,`prefix` and `realm` parameters:
-```python
-token_provider = hzkerberos.TokenProvider(spn="my-service", prefix="HTTP", realm="EXAMPLE.COM")
+token_provider = hzkerberos.TokenProvider(spn="my-service", prefix="hz", realm="EXAMPLE.COM")
 ```
 
 ### Creating the Hazelcast Python Client
@@ -88,14 +91,14 @@ The following XML fragment can be used as an example of a working server configu
                     <relax-flags-check>true</relax-flags-check>
                     <use-name-without-realm>false</use-name-without-realm>
                     <keytab-file>/common/krb5.keytab</keytab-file>
-                    <principal>hz/${ip}@EXAMPLE.COM</principal>
+                    <principal>hz/${host}@EXAMPLE.COM</principal>
                 </kerberos>
             </authentication>
             <identity>
                 <kerberos>
                     <realm>EXAMPLE.COM</realm>
                     <keytab-file>/common/krb5.keytab</keytab-file>
-                    <principal>hz/${ip}@EXAMPLE.COM</principal>
+                    <principal>hz/${host}@EXAMPLE.COM</principal>
                 </kerberos>
             </identity>
         </realm>

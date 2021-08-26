@@ -25,7 +25,8 @@ add_principals () {
   # delete the keytab, for clean state
   rm -f $keytab
   # create default credentials
-  add_principal "jduke@EXAMPLE.COM" "Password01"
+  add_principal "jduke@EXAMPLE.COM" "p1"
+  add_principal "jkey@EXAMPLE.COM"
   # create given credentials
   shift
   for host in "$@"; do

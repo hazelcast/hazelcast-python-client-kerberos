@@ -19,14 +19,20 @@ class Krb5Test(unittest.TestCase):
         krb5._destroy_cache()
 
     def test_get_token_with_keytab(self):
-        p = hzkerberos.TokenProvider(keytab=default_keytab())
+        p = hzkerberos.TokenProvider(principal="jkey@EXAMPLE.COM", keytab=default_keytab())
+        tok = p.token(address=self.default_address)
+        self.assertIsNotNone(tok)
+        self.assertIsInstance(tok, bytes)
+
+    def test_get_token_with_password(self):
+        p = hzkerberos.TokenProvider(principal="jduke@EXAMPLE.COM", password="p1")
         tok = p.token(address=self.default_address)
         self.assertIsNotNone(tok)
         self.assertIsInstance(tok, bytes)
 
     def test_get_token_with_cached_creds(self):
         # login and cache the ticket
-        os.system("echo Password01 | kinit jduke@EXAMPLE.COM")
+        os.system("echo p1 | kinit jduke@EXAMPLE.COM")
         # use cached ticket
         p = hzkerberos.TokenProvider()
         tok = p.token(address=self.default_address)
@@ -34,8 +40,7 @@ class Krb5Test(unittest.TestCase):
         self.assertIsInstance(tok, bytes)
 
     def test_get_token_realm_unknown_failure(self):
-        principal = make_principal(realm="foo.com")
-        p = hzkerberos.TokenProvider(principal=principal, keytab="foo")
+        p = hzkerberos.TokenProvider(principal="foo@FOO.COM", keytab="foo")
         self.assertRaisesRegex(
             hzkerberos.KerberosError,
             "KRB5_REALM_UNKNOWN",

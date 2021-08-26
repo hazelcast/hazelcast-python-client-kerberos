@@ -28,7 +28,7 @@ class ClientTest(unittest.TestCase):
         cls.default_address = Address(host="hz1", resolve=True)
 
     def test_token(self):
-        token_provider = hzkerberos.TokenProvider(keytab=default_keytab())
+        token_provider = hzkerberos.TokenProvider(principal="jkey@EXAMPLE.COM", keytab=default_keytab())
         addr = "%s:5701" % self.default_address.host
         client = hazelcast.HazelcastClient(
             cluster_members=[addr],

@@ -269,12 +269,12 @@ class Krb5(object):
             Krb5.cc_destroy = f
 
     @classmethod
-    def get_token(cls, principal="", password="", keytab=""):
-        # type: (Krb5, str, str, str) -> bytes
+    def get_token(cls, principal="", spn="", password="", keytab=""):
+        # type: (Krb5, str, str, str, str) -> bytes
 
         if cls.lib and (password or keytab):
             cls._cache_credentials(principal, password, keytab)
-        server_name = gssapi.Name(principal)
+        server_name = gssapi.Name(spn)
         client_ctx = gssapi.SecurityContext(name=server_name, usage="initiate")
         token = client_ctx.step()
         return token
