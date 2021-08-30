@@ -22,7 +22,7 @@ class ValidationTest(unittest.TestCase):
         TokenProvider(principal="foo", password="123")
         TokenProvider(principal="foo", keytab="krb5.keytab")
         self.assertRaisesRegex(ValueError,
-                               "keytab and password is required when principal is specified",
+                               "keytab or password is required when the principal is specified",
                                lambda: TokenProvider(principal="foo"))
 
     def test_principal_with_both_password_keytab(self):
