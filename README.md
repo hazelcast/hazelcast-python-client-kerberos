@@ -132,7 +132,7 @@ Running the tests requires Docker Compose.
     ```
 5. Run the app container to run the tests whenever the code changes:
     ```
-    docker run --name hzkerberos_test \
+    docker run -it --rm --name hzkerberos_test \
         --env-file .env \
         --network=hazelcast-python-client-kerberos_hz \
         -v `pwd`:/home/hz/app \

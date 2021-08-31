@@ -65,7 +65,10 @@ class TokenProvider(object):
         _log.debug("token principal: %s", principal)
         _log.debug("token SPN: %s", spn)
         return self.__krb5.get_token(
-            principal=principal, spn=spn, password=self.password, keytab=self.keytab,
+            principal=principal,
+            spn=spn,
+            password=self.password,
+            keytab=self.keytab,
         )
 
 
