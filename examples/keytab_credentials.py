@@ -20,7 +20,7 @@ customize_logger("hzkerberos")
 
 
 def main():
-    # Create a token provider which uses a principal and its password.
+    # Create a token provider which uses a principal and its keytab.
     token_provider = TokenProvider(principal="jkey@EXAMPLE.COM", keytab="/common/krb5.keytab")
     # Create a Hazelcast client which connects to the
     # Hazelcast instance at 127.0.0.1 using the given token provider.
