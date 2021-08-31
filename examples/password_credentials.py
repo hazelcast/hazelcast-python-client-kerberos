@@ -24,7 +24,7 @@ def main():
     token_provider = TokenProvider(principal="jduke@EXAMPLE.COM", password="p1")
     # Create a Hazelcast client which connects to the
     # Hazelcast instance at 127.0.0.1 using the given token provider.
-    client = HazelcastClient(cluster_members=["1127.0.0.1"], token_provider=token_provider)
+    client = HazelcastClient(cluster_members=["127.0.0.1"], token_provider=token_provider)
 
     my_map = client.get_map("auth-map").blocking()
     for i in range(10):
