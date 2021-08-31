@@ -13,7 +13,7 @@
 ## Install
 
 ```
-pip install -U git+https://github.com/hazelcast/hazelcast-python-client-kerberos.git@main#egg=hazelcast-kerberos
+pip install -U git+https://github.com/hazelcast/hazelcast-python-client-kerberos.git@v1.0.0#egg=hazelcast-kerberos
 ```
 
 ## Usage
