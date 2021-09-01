@@ -26,8 +26,8 @@ run_package () {
     source venv/bin/activate
     pip install -U pip
     pip install -U setuptools
-    pip install -U wheel
     cd /home/hz/app
+    ls -l
     make package
   "
 }
