@@ -1,0 +1,21 @@
+name: "Build Python Package"
+on: ["workflow_dispatch"]
+jobs:
+  build:
+    runs-on: "ubuntu-18.04"
+    steps:
+      - uses: "actions/checkout@v2"
+      - name: "Build hazelcast-kerberos image"
+        run: |
+          docker build -t hazelcast-python-client-kerberos_app:latest -f app.Dockerfile .
+      - name: "Package hazelcast-kerberos"
+        run: |
+          docker run --rm --name hzkerberos_package \
+              -v `pwd`:/home/hz/app \
+              hazelcast-python-client-kerberos_app:latest package
+#      - name: "Publish to PyPI"
+#        uses: "pypa/gh-action-pypi-publish@release/v1"
+#        if: "github.event_name == 'push' && startsWith(github.ref, 'refs/tags')"
+#        with:
+#          user: __token__
+#          password: ${{ secrets.PYPI_API_TOKEN }}
