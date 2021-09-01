@@ -24,8 +24,10 @@ run_package () {
   # assumes /app is the project root
   su -s /bin/bash hz -c "
     source venv/bin/activate
-    pip install wheel
-    cd ~/app
+    pip install -U pip
+    pip install -U setuptools
+    pip install -U wheel
+    cd /home/hz/app
     make package
   "
 }
