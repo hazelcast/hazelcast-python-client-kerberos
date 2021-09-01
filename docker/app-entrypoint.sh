@@ -22,7 +22,7 @@ run_coverage () {
 
 run_package () {
   # assumes /app is the project root
-  su -s /bin/bash hz -c "
+  su -s /bin/bash root -c "
     source venv/bin/activate
     pip install -U pip
     pip install -U setuptools
