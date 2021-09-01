@@ -18,4 +18,4 @@ jobs:
         with:
           user: "devopshazelcast"
           password: "${{ secrets.PYPI_API_PASSWORD }}"
-          repository_url: "https://test.pypi.org/simple/"
+          repository_url: "https://test.pypi.org/legacy/"
