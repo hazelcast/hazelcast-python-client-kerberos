@@ -18,7 +18,7 @@ setup(
     install_requires=["gssapi"],
     tests_require=["hazelcast-python-client", "nose", "thrift"],
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",
