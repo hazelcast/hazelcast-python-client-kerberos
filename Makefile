@@ -1,4 +1,4 @@
-.PHONY: format test-all test-cover
+.PHONY: format package test-all test-cover
 
 test-all:
 	nosetests tests
@@ -8,3 +8,6 @@ test-cover:
 
 format:
 	black --config black.toml .
+
+package:
+	python setup.py sdist bdist_wheel
